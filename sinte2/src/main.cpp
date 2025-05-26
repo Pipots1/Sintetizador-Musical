@@ -1,20 +1,18 @@
 #include <Arduino.h>
 #include <driver/i2s.h>
 #include <math.h>
-#include "audio_utils.h"  // Incluir las utilidades de audio
+#include "audio_utils.h"
 
-#define I2S_DOUT  16  // DIN del MAX98357A
-#define I2S_BCLK  17  // Bit Clock
-#define I2S_LRC   18  // LRC/WS (Word Select)
+#define I2S_DOUT  16
+#define I2S_BCLK  17
+#define I2S_LRC   18
 
-// Parámetros de la señal
 #define SAMPLE_RATE     44100
-#define TONE_FREQUENCY  440    // A4 (440 Hz)
-#define AMPLITUDE       10000  // Amplitud de la señal senoidal
+#define TONE_FREQUENCY  440
+#define AMPLITUDE       10000
 #define BUFFER_SIZE     512
 
 void iniciarAudio() {
-    // Configuración I2S para salida en modo maestro
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
         .sample_rate = SAMPLE_RATE,
@@ -35,7 +33,6 @@ void iniciarAudio() {
         .data_in_num = I2S_PIN_NO_CHANGE
     };
 
-    // Instanciar el periférico I2S
     i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
     i2s_set_pin(I2S_NUM_0, &pin_config);
     i2s_set_sample_rates(I2S_NUM_0, SAMPLE_RATE);
@@ -43,11 +40,13 @@ void iniciarAudio() {
 
 void reproducirTono() {
     static int16_t buffer[BUFFER_SIZE];
+    static float fase = 0.0f;
+    float incremento = 2.0f * PI * TONE_FREQUENCY / SAMPLE_RATE;
 
-    // Generar una onda senoidal
     for (int i = 0; i < BUFFER_SIZE; i++) {
-        float t = (float)i / SAMPLE_RATE;
-        buffer[i] = (int16_t)(AMPLITUDE * sin(2.0 * PI * TONE_FREQUENCY * t));
+        buffer[i] = (int16_t)(AMPLITUDE * sinf(fase));
+        fase += incremento;
+        if (fase >= 2.0f * PI) fase -= 2.0f * PI;
     }
 
     size_t bytes_written;
@@ -60,6 +59,6 @@ void setup() {
 }
 
 void loop() {
-    reproducirTono();  // Envía bloques continuamente
-    delay(10);         // Pequeño retraso para evitar saturar el bucle
+    reproducirTono();
+    // Puedes quitar el delay o dejarlo muy pequeño
 }
