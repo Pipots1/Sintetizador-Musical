@@ -1,3 +1,4 @@
+// botones.h
 #ifndef BOTONES_H
 #define BOTONES_H
 
@@ -15,5 +16,3 @@ class Boton {
     void iniciar();
     bool fuePresionado();
 };
-
-#endif
