@@ -16,3 +16,4 @@ class Boton {
     void iniciar();
     bool fuePresionado();
 };
+#endif
