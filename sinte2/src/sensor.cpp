@@ -1,25 +1,40 @@
-#include <Arduino.h>
-#include <Wire.h>
-#include <Adafruit_VL53L0X.h>
+#include "Sensor.h"
 
-// Define los pines SDA y SCL
-#define PIN_SDA 8  // Cambia por el pin correcto para SDA
-#define PIN_SCL 9  // Cambia por el pin correcto para SCL
+SensorToF::SensorToF(uint8_t sda, uint8_t scl, uint8_t xshut)
+    : _sda(sda), _scl(scl), _xshut(xshut) {}
 
-Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+bool SensorToF::begin() {
+    Wire.begin(_sda, _scl);  // inicia I2C en los pines definidos
 
-void iniciarSensor() {
-    Wire.begin(PIN_SDA, PIN_SCL);
-    Serial.println("Sensor inicializado");
-    if (!lox.begin()) {
-        Serial.println("¡Error inicializando VL53L0X!");
-        while (1);
+    if (_xshut != 255) {
+        // Apagar el sensor
+        pinMode(_xshut, OUTPUT);
+        digitalWrite(_xshut, LOW);
+        delay(10);
+
+        // Encender el sensor
+        digitalWrite(_xshut, HIGH);
+        delay(50);  // Aumenta el delay para que el sensor arranque
+    } else {
+        delay(50);  // Aún esperamos un poco por seguridad
     }
+
+    if (!lox.begin()) {
+        Serial.println("❌ VL53L0X no detectado. ¿Está bien conectado?");
+        return false;
+    }
+
+    Serial.println("✅ VL53L0X inicializado correctamente.");
+    return true;
 }
 
-int leerDistancia() {
+
+int SensorToF::leerDistancia() {
     VL53L0X_RangingMeasurementData_t measure;
     lox.rangingTest(&measure, false);
-    if (measure.RangeStatus != 4) return measure.RangeMilliMeter;
-    return -1;  // error
+    if (measure.RangeStatus != 4) {
+        return measure.RangeMilliMeter;
+    } else {
+        return -1;  // medición no válida
+    }
 }

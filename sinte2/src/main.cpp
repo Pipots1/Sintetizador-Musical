@@ -2,15 +2,24 @@
 #include <driver/i2s.h>
 #include <math.h>
 #include "audio_utils.h"
+#include "Sensor.h"  // Asegúrate de que el archivo y la clase se llaman así
 
-#define I2S_DOUT  16
-#define I2S_BCLK  17
-#define I2S_LRC   18
+// Pines de audio
+#define I2S_DOUT  35
+#define I2S_BCLK  37
+#define I2S_LRC   36
 
 #define SAMPLE_RATE     44100
 #define TONE_FREQUENCY  440
 #define AMPLITUDE       10000
 #define BUFFER_SIZE     512
+
+// Pines de conexión del sensor
+#define PIN_SDA   18
+#define PIN_SCL   17
+#define PIN_XSHUT 16
+
+TaskHandle_t TaskSensor;
 
 void iniciarAudio() {
     i2s_config_t i2s_config = {
@@ -53,12 +62,51 @@ void reproducirTono() {
     i2s_write(I2S_NUM_0, buffer, sizeof(buffer), &bytes_written, portMAX_DELAY);
 }
 
+// Tarea para el sensor ToF
+void tsensor(void *parameter) {
+  Serial.println("🟡 Iniciando tarea tsensor...");
+
+  SensorToF sensor(PIN_SDA, PIN_SCL, PIN_XSHUT);
+
+  if (!sensor.begin()) {
+    Serial.println("❌ Error: no se pudo inicializar el VL53L0X.");
+    vTaskDelete(NULL);  // Termina la tarea si falla
+  }
+
+  Serial.println("✅ Sensor VL53L0X inicializado correctamente.");
+
+  while (true) {
+    int distancia = sensor.leerDistancia();
+
+    if (distancia > 0) {
+      Serial.print("📏 Distancia (RTOS): ");
+      Serial.print(distancia);
+      Serial.println(" mm");
+    } else {
+      Serial.println("❗ Medición no válida (RTOS)");
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(500));  // espera 500 ms
+  }
+}
+
 void setup() {
-    Serial.begin(115200);
-    iniciarAudio();
+  Serial.begin(115200);
+  delay(1000);  // esperar a que el puerto serie esté listo
+
+  iniciarAudio();
+
+  xTaskCreatePinnedToCore(
+    tsensor,          // Función de la tarea
+    "TaskSensor",     // Nombre de la tarea
+    4096,             // Tamaño de la pila
+    NULL,             // Parámetros para la tarea
+    1,                // Prioridad
+    &TaskSensor,      // Handle
+    1                 // Núcleo donde correrá (0 o 1)
+  );
 }
 
 void loop() {
-    reproducirTono();
-    // Puedes quitar el delay o dejarlo muy pequeño
+  reproducirTono();
 }
