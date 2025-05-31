@@ -1,0 +1,29 @@
+// botones.cpp
+#include "botones.h"
+
+Boton::Boton(uint8_t pin, unsigned long debounceDelay)
+    : pin(pin), debounceDelay(debounceDelay), lastPressTime(0), lastState(HIGH), indiceFrecuencia(0) {}
+
+void Boton::iniciar() {
+    pinMode(pin, INPUT_PULLUP);
+    lastState = digitalRead(pin);
+}
+
+bool Boton::fuePresionado() {
+    bool estadoActual = digitalRead(pin);
+    unsigned long ahora = millis();
+
+    if (estadoActual == LOW && lastState == HIGH && (ahora - lastPressTime > debounceDelay)) {
+        lastPressTime = ahora;
+        lastState = estadoActual;
+        indiceFrecuencia = (indiceFrecuencia + 1) % NUM_FRECUENCIAS;  // Cambia la frecuencia
+        return true;
+    }
+
+    lastState = estadoActual;
+    return false;
+}
+
+int Boton::getFrecuenciaActual() const {
+    return FRECUENCIAS[indiceFrecuencia];
+}
