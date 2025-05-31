@@ -1,0 +1,25 @@
+//botones.h
+
+#ifndef BOTONES_H
+#define BOTONES_H
+
+#include <Arduino.h>
+
+class Boton {
+public:
+    Boton(uint8_t pin, unsigned long debounceDelay = 200);
+    void iniciar();
+    bool fuePresionado();
+    int getFrecuenciaActual() const;
+    const static int NUM_FRECUENCIAS = 5;  // Total de frecuencias disponibles
+
+private:
+    uint8_t pin;
+    unsigned long debounceDelay;
+    unsigned long lastPressTime;
+    bool lastState;
+    int indiceFrecuencia;
+    const int FRECUENCIAS[5] = {100, 500, 1000, 2000, 5000};  // Rangos de frecuencia
+};
+
+#endif
