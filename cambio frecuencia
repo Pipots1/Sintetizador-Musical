@@ -1,29 +1,46 @@
-// botones.cpp
-#include "botones.h"
+#include "pul.h"
 
-Boton::Boton(uint8_t pin, unsigned long debounceDelay)
-    : pin(pin), debounceDelay(debounceDelay), lastPressTime(0), lastState(HIGH), indiceFrecuencia(0) {}
+Boton::Boton(uint8_t pin) 
+    : pin(pin), lastPressTime(0), indiceOnda(0) {}
 
 void Boton::iniciar() {
     pinMode(pin, INPUT_PULLUP);
-    lastState = digitalRead(pin);
 }
 
 bool Boton::fuePresionado() {
-    bool estadoActual = digitalRead(pin);
-    unsigned long ahora = millis();
-
-    if (estadoActual == LOW && lastState == HIGH && (ahora - lastPressTime > debounceDelay)) {
-        lastPressTime = ahora;
-        lastState = estadoActual;
-        indiceFrecuencia = (indiceFrecuencia + 1) % NUM_FRECUENCIAS;  // Cambia la frecuencia
+    if (digitalRead(pin) == LOW && (millis() - lastPressTime > 200)) {
+        lastPressTime = millis();
+        indiceOnda = (indiceOnda + 1) % 4;  // Cicla entre 0 y 3 (4 ondas)
         return true;
     }
-
-    lastState = estadoActual;
     return false;
 }
 
-int Boton::getFrecuenciaActual() const {
-    return FRECUENCIAS[indiceFrecuencia];
+int Boton::getOndaActual() const {
+    return indiceOnda;
+}
+
+const char* Boton::getDescripcionOnda() const {
+    const char* ondas[] = {
+        // Senoidal
+        "🟦 SENOIDAL\n"
+        "  ╭┳╮\n"
+        " ━╯┗┻╯━",
+
+        // Cuadrada
+        "🟥 CUADRADA\n"
+        " ━━┳┳━━\n"
+        "   ┗┻  ",
+
+        // Sierra
+        "🟨 SIERRA\n"
+        " ╱╱╱╱\n"
+        "╱╱╱╱  ",
+
+        // Triangular
+        "🟩 TRIANGULAR\n"
+        "  ╱╲╱╲\n"
+        " ╱╲╱╲  "
+    };
+    return ondas[indiceOnda];
 }
