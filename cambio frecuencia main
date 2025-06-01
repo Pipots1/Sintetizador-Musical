@@ -1,24 +1,20 @@
-// main.cpp
 #include <Arduino.h>
-#include "botones.h"
+#include "pul.h"
 
-const uint8_t PIN_BOTON = 38;  // Pin del botón (conectar a GND)
-Boton boton(PIN_BOTON);
+Boton boton(38);  // Botón en pin 38
 
 void setup() {
     Serial.begin(115200);
     boton.iniciar();
-    Serial.println("Sistema listo. Presiona el botón para cambiar la frecuencia.");
+    Serial.println("\n🎵 Presiona el botón (PIN 38) para cambiar la onda:");
+    Serial.println(boton.getDescripcionOnda());
+    Serial.println("──────────────────────");
 }
 
 void loop() {
     if (boton.fuePresionado()) {
-        Serial.print("Frecuencia cambiada a: ");
-        Serial.print(boton.getFrecuenciaActual());
-        Serial.println(" Hz");
-        
-        // Aquí puedes agregar la lógica para aplicar la frecuencia:
-        // Ej: tone(PIN_BUZZER, boton.getFrecuenciaActual());
+        Serial.println(boton.getDescripcionOnda());
+        Serial.println("──────────────────────");
     }
-    delay(10);  // Pequeña pausa para evitar saturación
+    delay(10);
 }
