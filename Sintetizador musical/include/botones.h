@@ -1,33 +1,23 @@
-// bul.h
 #ifndef BOTONES_H
 #define BOTONES_H
 
 #include <Arduino.h>
 
 // Pines de botones
-#define PIN_BOTON1 38
-#define PIN_BOTON2 39
-#define PIN_BOTON3 40
+#define BTN_PLAY     4 //(PLAY)
+#define BTN_VOL_UP   5 //(BAJAR)
+#define BTN_VOL_DOWN 6 //(SUBIR)
+#define BTN_WAVE     7 //(TIPO ONDA)
 
-// Variables globales
-extern int modo_onda;
-extern int efecto;
-extern int modo_auto;
+// Variables de estado (externas)
+extern bool isPlaying;
+extern int volume;       // 0–100
+extern int waveform;     // 0=seno, 1=cuadrada, 2=triangular
 
-class Boton {
-public:
-    Boton(uint8_t pin, unsigned long debounceDelay = 200);
-    void iniciar();
-    bool fuePresionado();
+// Inicializa los pines de los botones
+void initBotones();
 
-private:
-    uint8_t pin;
-    unsigned long debounceDelay;
-    unsigned long lastPressTime;
-    bool lastState;
-};
-
-void iniciarBotones();
+// Debe llamarse en loop para gestionar las pulsaciones
 void leerBotones();
 
 #endif

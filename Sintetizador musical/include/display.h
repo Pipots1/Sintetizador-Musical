@@ -1,4 +1,5 @@
 #pragma once
 
 void iniciarDisplay();
-void mostrarEnPantalla(int distancia);
+
+void mostrarEnPantalla (int distancia);

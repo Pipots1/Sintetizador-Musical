@@ -1,62 +1,56 @@
-// pul.cpp
-#include "pul.h"
+#include "botones.h"
 
-int modo_onda = 0;
-int efecto = 0;
-int modo_auto = 0;
+// Estados anteriores para detección de flancos
+static bool prevPlay = HIGH;
+static bool prevUp   = HIGH;
+static bool prevDown = HIGH;
+static bool prevWave = HIGH;
 
-Boton boton1(PIN_BOTON1);
-Boton boton2(PIN_BOTON2);
-Boton boton3(PIN_BOTON3);
+// Variables compartidas (declaradas externamente)
+bool isPlaying = true;
+int volume = 100;
+int waveform = 0;
 
-Boton::Boton(uint8_t pin, unsigned long debounceDelay)
-  : pin(pin), debounceDelay(debounceDelay), lastPressTime(0), lastState(HIGH) {}
-
-void Boton::iniciar() {
-    pinMode(pin, INPUT_PULLUP);
-    // Leer el estado inicial
-    lastState = digitalRead(pin);
-}
-
-bool Boton::fuePresionado() {
-    bool estadoActual = digitalRead(pin);
-    unsigned long ahora = millis();
-    
-    // Detectar flanco descendente (botón presionado)
-    if (estadoActual != lastState) {
-        // Esperar a que el estado se estabilice
-        delay(5); // Pequeña espera para el debounce físico
-        estadoActual = digitalRead(pin);
-        
-        if (estadoActual == LOW && lastState == HIGH && (ahora - lastPressTime > debounceDelay)) {
-            lastPressTime = ahora;
-            lastState = estadoActual;
-            return true;
-        }
-        
-        lastState = estadoActual;
-    }
-    
-    return false;
-}
-
-void iniciarBotones() {
-    boton1.iniciar();
-    boton2.iniciar();
-    boton3.iniciar();
+void initBotones() {
+  pinMode(BTN_PLAY, INPUT_PULLUP);
+  pinMode(BTN_VOL_UP, INPUT_PULLUP);
+  pinMode(BTN_VOL_DOWN, INPUT_PULLUP);
+  pinMode(BTN_WAVE, INPUT_PULLUP);
 }
 
 void leerBotones() {
-    if (boton1.fuePresionado()) {
-        modo_onda = (modo_onda + 1) % 3;
-        Serial.println("Botón 1 presionado");
+  bool readPlay = digitalRead(BTN_PLAY);
+  bool readUp   = digitalRead(BTN_VOL_UP);
+  bool readDown = digitalRead(BTN_VOL_DOWN);
+  bool readWave = digitalRead(BTN_WAVE);
+
+  if (readPlay == LOW && prevPlay == HIGH) {
+    isPlaying = !isPlaying;
+    Serial.println(isPlaying ? "▶ Play" : "⏹ Stop");
+  }
+
+  if (readUp == LOW && prevUp == HIGH) {
+    volume = min(volume + 10, 100);
+    Serial.print("Volumen: "); Serial.println(volume);
+  }
+
+  if (readDown == LOW && prevDown == HIGH) {
+    volume = max(volume - 10, 0);
+    Serial.print("Volumen: "); Serial.println(volume);
+  }
+
+  if (readWave == LOW && prevWave == HIGH) {
+    waveform = (waveform + 1) % 3;
+    Serial.print("Onda actual: ");
+    switch (waveform) {
+      case 0: Serial.println("Seno"); break;
+      case 1: Serial.println("Cuadrada"); break;
+      case 2: Serial.println("Triangular"); break;
     }
-    if (boton2.fuePresionado()) {
-        efecto = !efecto;
-        Serial.println("Botón 2 presionado");
-    }
-    if (boton3.fuePresionado()) {
-        modo_auto = !modo_auto;
-        Serial.println("Botón 3 presionado");
-    }
+  }
+
+  prevPlay = readPlay;
+  prevUp = readUp;
+  prevDown = readDown;
+  prevWave = readWave;
 }
