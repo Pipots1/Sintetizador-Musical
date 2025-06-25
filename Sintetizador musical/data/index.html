@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Control Sintetizador</title>
+</head>
+<body>
+  <h1>Control del Sintetizador</h1>
+
+  <button onclick="fetch('/play', {method:'POST'})">Play</button>
+  <button onclick="fetch('/stop', {method:'POST'})">Stop</button>
+  <br><br>
+
+  <label>Forma de onda:</label>
+  <select id="waveform" onchange="setWaveform()">
+    <option value="0">Seno</option>
+    <option value="1">Cuadrada</option>
+    <option value="2">Triangular</option>
+  </select>
+
+  <br><br>
+  <label>Volumen:</label>
+  <input type="range" id="volume" min="0" max="100" value="50" onchange="setVolume()">
+
+  <script>
+    function setWaveform() {
+      let val = document.getElementById("waveform").value;
+      fetch("/waveform", {method:'POST', body: new URLSearchParams({wave: val})});
+    }
+
+    function setVolume() {
+      let vol = document.getElementById("volume").value;
+      fetch("/volume", {method:'POST', body: new URLSearchParams({vol: vol})});
+    }
+  </script>
+</body>
+</html>
